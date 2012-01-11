@@ -1,1 +1,8 @@
 Simple Java REST service
+
+  Development Environment Dependencies
+  ------------------------------------
+    Java 1.6 or higher
+    Maven 3
+    Git
+
