@@ -94,4 +94,11 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>Spock Snapshot Repository</id>
+            <name>Spock Snapshot Repository</name>
+            <url>http://m2repo.spockframework.org/snapshots/</url>
+        </repository>
+    </repositories>
 </project>
