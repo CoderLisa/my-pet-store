@@ -7,6 +7,11 @@
     <groupId>com.mypetstore</groupId>
     <artifactId>petstore-service</artifactId>
     <version>1.0</version>
+
+    <properties>
+        <cucumber-jvm-version>1.0.0.RC13</cucumber-jvm-version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -22,11 +27,6 @@
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
             <version>2.2.2</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.2</version>
         </dependency>
 
         <dependency>
@@ -54,7 +54,86 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.jruby</groupId>
+            <artifactId>jruby-complete</artifactId>
+            <version>1.6.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-jruby</artifactId>
+            <version>${cucumber-jvm-version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>${cucumber-jvm-version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
+
+
+    <profiles>
+        <profile>
+            <id>initial-bundle</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <phase>generate-test-resources</phase>
+                                <configuration>
+                                    <target>
+                                        <sequential>
+                                            <echo message="Installing bundler gem"/>
+                                            <java jar="${maven.dependency.org.jruby.jruby-complete.jar.path}"
+                                                  fork="true" failonerror="true" maxmemory="256m"
+                                                  newenvironment="true">
+                                                <arg value="-S"/>
+                                                <arg value="gem"/>
+                                                <arg value="install"/>
+                                                <arg value="bundler"/>
+                                                <arg value="-i"/>
+                                                <arg value="${basedir}/src/test/gems"/>
+                                                <arg value="--no-ri"/>
+                                                <arg value="--no-rdoc"/>
+                                            </java>
+
+                                            <echo message="Initializing bundle"/>
+                                            <java jar="${maven.dependency.org.jruby.jruby-complete.jar.path}"
+                                                  fork="true" failonerror="true" maxmemory="512m"
+                                                  newenvironment="true">
+                                                <env key="GEM_HOME" path="${basedir}/src/test/gems"/>
+                                                <arg value="-S"/>
+                                                <arg value="${basedir}/src/test/gems/bin/bundle"/>
+                                                <arg value="init"/>
+                                            </java>
+                                        </sequential>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -89,6 +168,59 @@
                             <goal>testCompile</goal>
                         </goals>
                     </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <target>
+                                <echo message="Doing bundle install"/>
+                                <java jar="${maven.dependency.org.jruby.jruby-complete.jar.path}"
+                                      fork="true" failonerror="true" maxmemory="512m"
+                                      newenvironment="true">
+                                    <env key="GEM_HOME" path="${basedir}/src/test/gems"/>
+                                    <arg value="-S"/>
+                                    <arg value="${basedir}/src/test/gems/bin/bundle"/>
+                                    <arg value="install"/>
+                                    <arg value="--gemfile=${basedir}/Gemfile"/>
+                                </java>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+
+                    <execution>
+                        <phase>test</phase>
+                        <id>run-cucumbers</id>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <echo message="Running Cucumber Ruby Features"/>
+                                <java fork="true"
+                                      classname="cucumber.cli.Main"
+                                      classpathref="maven.test.classpath"
+                                      failonerror="true">
+                                    <arg value="-f"/>
+                                    <arg value="pretty"/>
+                                    <arg value="--glue"/>
+                                    <!-- this path is relative to things in the class path -->
+                                    <arg value="src/test/resources"/>
+                                    <!-- this is the feature file to run, it doesn't accept globs -->
+                                    <arg value="src/test/resources"/>
+                                </java>
+                            </tasks>
+                        </configuration>
+                    </execution>
+
                 </executions>
             </plugin>
         </plugins>

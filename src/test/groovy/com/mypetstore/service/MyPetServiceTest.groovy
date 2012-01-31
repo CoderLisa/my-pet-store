@@ -22,6 +22,7 @@ class MyPetServiceTest extends Specification {
         pet.type = type
         pet.setPrice(price)
         pet.setCost(cost)
+        return pet
     }
 
     def "add pets and get list of pets"() {
