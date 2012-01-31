@@ -7,14 +7,6 @@ Simple Java REST service
     Git
 
 
-To install the bundler gem and intialize a sample Gemfile.
-    mvn test -Pinitial-bundle
-
-Then you should add the src/test/gems directory and commit it. After that you should add the src/test/gems directory
-to .gitignore so you don't add any more gems.
-
 Now you can treat the Gemfile and Gemfile.lock as files to be committed to your repo, and any time someone runs the tests
 the bundle install will be ran, and that will make sure you always have the gems available for testing, and that any
 updated gems are acquired and downloaded, but don't pollute your repo.
-
-Hooray!
